@@ -1,4 +1,4 @@
-s1="Arpit Sanjay Jain"
+s1 = "Arpit Sanjay Jain"
 print(s1.encode())
 # print(s1.endswith('t'))
 print(s1.lstrip("??"))
@@ -11,7 +11,7 @@ print(s1.upper())
 print(s1.lower())
 print(s1.expandtabs())
 print(s1.index("A"))
-s2=["a","b"]
-s3=str(s2)
+s2 = ["a", "b"]
+s3 = str(s2)
 print(s3)
 print(s3.join(s1))

@@ -1,0 +1,17 @@
+s1="Arpit Sanjay Jain"
+print(s1.encode())
+# print(s1.endswith('t'))
+print(s1.lstrip("??"))
+print(s1.isprintable())
+# print(s1.ljust("A"))
+print(s1.center(20))
+print(s1.count("a"))
+print(s1.isalnum())
+print(s1.upper())
+print(s1.lower())
+print(s1.expandtabs())
+print(s1.index("A"))
+s2=["a","b"]
+s3=str(s2)
+print(s3)
+print(s3.join(s1))

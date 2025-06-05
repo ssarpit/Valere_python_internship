@@ -1,13 +1,13 @@
-#VARIABLES AND DATA TYPES
-a=2
+# VARIABLES AND DATA TYPES
+a = 2
 print(type(a))
-name="arpit jain "
+name = "arpit jain "
 print(type(name))
-b=2.3
+b = 2.3
 print(type(b))
-is_developer=True
+is_developer = True
 print(type(is_developer))
 
 # #INPUT AND OUTPUT IN PYTHON
-num1=(input("enter name "))
+num1 = (input("enter name "))
 print(num1)

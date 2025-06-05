@@ -1,7 +1,5 @@
 
 
-
-
 # FUNCTION TO CHECK NUMBER IS PRIME
 num = int(input("enter number"))
 prime = 0

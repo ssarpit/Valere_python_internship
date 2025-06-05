@@ -1,23 +1,23 @@
-#SIMPLE CALCULATOR IN PYTHON
+# SIMPLE CALCULATOR IN PYTHON
 
-num1=float(input("enter number_1 "))
-op=input("enter operation: ")
-num2=float(input("enter number_2 "))
-if op=="+":
+num1 = float(input("enter number_1 "))
+op = input("enter operation: ")
+num2 = float(input("enter number_2 "))
+if op == "+":
     print(num1+num2)
-elif op=="-":
+elif op == "-":
     print(num1-num2)
-elif op=="*":
+elif op == "*":
     print(f"Result:{num1*num2}")
-elif op=="/":
+elif op == "/":
     try:
-        result=num1/num2
+        result = num1/num2
         print(f"Result: {result}")
     except Exception as e:
         print(e)
-elif op=="%":
+elif op == "%":
     try:
-        result=num1%num2
+        result = num1 % num2
         print(f"Result is: {result}")
     except ZeroDivisionError:
         print(f"Modulo operator does not work for zero denominator ")

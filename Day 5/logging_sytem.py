@@ -10,6 +10,7 @@ logging.basicConfig(
     level=logging.DEBUG
 )
 
+
 def logging_system(filename):
     logging.info("Logging system started")
     try:
@@ -25,6 +26,7 @@ def logging_system(filename):
                     logging.error(f"Invalid age for {row[0]}: {row[1]}")
     except FileNotFoundError:
         logging.error("File not found!")
+
 
 # Call function with correct file name
 logging_system("afile.csv")

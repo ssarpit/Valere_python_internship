@@ -1,0 +1,9 @@
+2025-06-06 19:17:17,146-root-age is invalid {age}-ERROR
+2025-06-06 19:19:40,441-root-age is invalid {age}-ERROR
+2025-06-06 19:20:39,733-root-age is invalid {age}-ERROR
+2025-06-06 19:20:57,504-root-age is invalid {age}-ERROR
+2025-06-06 19:30:12,459 - root - INFO - Logging system started
+2025-06-06 19:30:12,471 - root - INFO - Name: John, Age: 25
+2025-06-06 19:30:12,471 - root - INFO - Name: Alice, Age: 30
+2025-06-06 19:30:12,471 - root - ERROR - Invalid age for Bob: invalid
+2025-06-06 19:30:12,471 - root - DEBUG - Files are analyzed for correct function

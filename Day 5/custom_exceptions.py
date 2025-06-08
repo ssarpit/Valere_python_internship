@@ -1,4 +1,4 @@
-class invalidageerror(Exception):
+class InvalidAgeError(Exception):
     "age is smaller than 18 "
     pass
 
@@ -10,8 +10,8 @@ def eligibility():
         if (age >= 18):
             print("You are eligible to vote")
         else:
-            raise invalidageerror("age is less than 18")
-    except invalidageerror as e:
+            raise InvalidAgeError("age is less than 18")
+    except InvalidAgeError as e:
         print("Age is invalid", e)
 
 

@@ -1,12 +1,16 @@
 class Employee:
- def __init__(self,a):
-   self.name=a
- def show(self):
-   print(f"Name of Employee is {self.name}")
- @property
- def employee(self,):
-    self.name="aj"
-obj=Employee("aj")
+    def __init__(self, a):
+        self.name = a
+
+    def show(self):
+        print(f"Name of Employee is {self.name}")
+
+    @property
+    def employee(self,):
+        self.name = "aj"
+
+
+obj = Employee("aj")
 # obj=Employee
 obj.show()
 

@@ -2,7 +2,7 @@ import pdb
 
 
 def multiply(a, b):
-    return a*b
+    return a * b
 
 
 pdb.set_trace()

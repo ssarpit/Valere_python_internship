@@ -10,12 +10,12 @@ print(content)
 
 # WRITING IN JSON FILE
 
-# # Dump is used for writing in the json file
+# Dump is used for writing in the json file
 
-# with open("Day_4.json", "a") as file:
-#     content = json.dump(d, file)
-#     print(content)
+with open("Day_4.json", "a") as file:
+    content = json.dump(d, file)
+    print(content)
 
-# d1 = pd.read_csv("myfile.csv")
-# df = pd.DataFrame(d1)
-# print(df)
+d1 = pd.read_csv("myfile.csv")
+df = pd.DataFrame(d1)
+print(df)

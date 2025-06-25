@@ -78,12 +78,8 @@
 
   <div class="login-container">
     <h2>User Login</h2>
-    <form action="/blog/home/" method="POST">
-      {% csrf_token %}
-      {% if error_message %}
-        <div class="error">{{ error_message }}</div>
-      {% endif %}
-
+  <form method="POST" action="{% url 'login' %}">
+  {% csrf_token %}
       <label for="email">Email</label>
       <input type="email" name="email" id="email" required>
 
@@ -94,7 +90,7 @@
     </form>
 
     <div class="Register-link">
-      Don’t have an account? <a href="/blog/register">Register here</a>
+      Don’t have an account? <a href="/register">Register here</a>
     </div>
   </div>
 

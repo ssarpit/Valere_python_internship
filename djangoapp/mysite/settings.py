@@ -9,9 +9,9 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+from decouple import config
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework.authtoken", 
+    
 ]
 
 MIDDLEWARE = [
@@ -51,6 +53,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
 
 ROOT_URLCONF = "mysite.urls"
 
@@ -70,6 +73,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "mysite.wsgi.application"
+AUTHENTICATION_BACKENDS = ['blog.backends.EmailBackend']
 
 
 # Database
@@ -126,9 +130,15 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'arpitofficial0206@gmail.com'
-EMAIL_HOST_PASSWORD = 'fflp vpku yqcg kzgn'  # Use app password if 2FA enabled
+from decouple import config
+
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+
+ # Use app password if 2FA enabled
 
 import os 
 STATIC_URL = '/static/'
@@ -139,9 +149,38 @@ STATICFILES_DIR = {
 MEDIA_ROOT = os.path.join(BASE_DIR, 'public/static')
 MEDIA_URL = '/media/'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
-AUTH_USER_MODEL = 'blog.CustomUser'
+# AUTH_USER_MODEL = 'blog.CustomUser'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 LOGIN_URL='/blog/login/'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'public/static',
+]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+AUTH_USER_MODEL = 'blog.CustomUser'
+LOGIN_URL = '/blog/login/'
+
+
+AUTHENTICATION_BACKENDS = [
+    'blog.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+               'rest_framework.authentication.TokenAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES':(
+                'rest_framework.permissions.IsAuthenticated',
+    ),
+
+}

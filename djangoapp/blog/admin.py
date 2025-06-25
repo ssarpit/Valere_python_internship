@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+# from .models import CustomUser
+
 from .models import (
     CustomUser,
     PostCategory,
@@ -6,14 +9,36 @@ from .models import (
     PostLike,
     Comment,
     CommentLike,
-    Notification
+    Notification,
+    Book
 )
 
-@admin.register(CustomUser)
-class UserAdmin(admin.ModelAdmin):
-    list_display = ['username', 'email', 'phone_number', 'gender', 'dob', 'is_active']
+
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from .models import CustomUser
+
+class CustomUserAdmin(UserAdmin):
+    model = CustomUser
+    list_display = ['username', 'email', 'phone_number', 'gender', 'dob', 'is_staff', 'is_superuser']
     search_fields = ['username', 'email', 'phone_number']
-    list_filter = ['is_active', 'gender']
+    list_filter = ['is_active', 'is_staff', 'gender']
+    
+    fieldsets = (
+        (None, {'fields': ('username', 'email', 'password')}),
+        ('Personal Info', {'fields': ('phone_number', 'gender', 'dob')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+    )
+    
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'email', 'phone_number', 'gender', 'dob', 'password1', 'password2', 'is_staff', 'is_superuser')}
+        ),
+    )
+
+admin.site.register(CustomUser, CustomUserAdmin)
 
 @admin.register(PostCategory)
 class PostCategoryAdmin(admin.ModelAdmin):
@@ -38,3 +63,7 @@ class CommentLikeAdmin(admin.ModelAdmin):
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
     list_display = ['user', 'post', 'comment', 'tagged_id']
+
+@admin.register(Book)
+class BookAdmin(admin.ModelAdmin):
+    list_display=['title','author','publish_date']

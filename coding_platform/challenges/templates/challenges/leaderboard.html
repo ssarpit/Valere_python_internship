@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Leaderboard{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h3>🏆 Leaderboard</h3>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Submissions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in leaderboard %}
+        <tr>
+          <td>{{ entry.user__username }}</td>
+          <td>{{ entry.total_submissions }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

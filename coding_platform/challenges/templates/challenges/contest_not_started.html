@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Contest Not Started</title>
+</head>
+<body>
+  <h2>{{ challenge.title }}</h2>
+  {% if contest %}
+    <p>This contest will start at: <strong>{{ contest.start_time }}</strong></p>
+    {% if user.is_authenticated %}
+<a href="{% url 'contests:join_contest' challenge.contest.id %}">Join Contest</a>
+    <button style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px;">
+      Join Contest
+    </button>
+  </a>
+{% endif %}
+
+    <p id="countdown"></p>
+    
+  {% else %}
+    <p>This challenge is not linked to a contest.</p>
+  {% endif %}
+
+  <p>Please wait until the contest starts to attempt this challenge.</p>
+
+  <script>
+    {% if contest %}
+      var countDownDate = new Date("{{ contest.start_time|date:'Y-m-d H:i:s' }}").getTime();
+
+      var x = setInterval(function () {
+        var now = new Date().getTime();
+        var distance = countDownDate - now;
+
+        if (distance <= 0) {
+          clearInterval(x);
+          document.getElementById("countdown").innerHTML = "🎉 Contest has started! Redirecting...";
+          setTimeout(function () {
+            location.reload(); // ✅ Auto reload when time is up
+          }, 2000);
+        } else {
+          var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+          document.getElementById("countdown").innerHTML = "Starts in: " + minutes + "m " + seconds + "s";
+        }
+      }, 1000);
+    {% endif %}
+  </script>
+</body>
+</html>

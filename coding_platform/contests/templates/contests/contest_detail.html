@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Contest Detail{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h3>{{ contest.name }}</h3>
+  <p><strong>Start:</strong> {{ contest.start_time }} | <strong>End:</strong> {{ contest.end_time }}</p>
+  <p>{{ contest.description }}</p>
+
+  <h4 class="mt-4">🧠 Challenges in This Contest</h4>
+  <ul class="list-group">
+    {% for challenge in challenges %}
+      <li class="list-group-item d-flex justify-content-between align-items-center {% if challenge.id in solved_challenges %}list-group-item-success{% endif %}">
+        {{ challenge.title }}
+        <a href="{% url 'challenges:challenge_detail' challenge.id %}" class="btn btn-outline-success">
+          {% if challenge.id in solved_challenges %}✅ Solved{% else %}Solve{% endif %}
+        </a>
+      </li>
+    {% empty %}
+      <li class="list-group-item">No challenges added.</li>
+    {% endfor %}
+  </ul>
+
+  {% if all_solved %}
+    <div class="mt-4 text-center">
+      <a href="{% url 'challenges:leaderboard' %}" class="btn btn-primary btn-lg">🎉 Submit Contest & View Leaderboard</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

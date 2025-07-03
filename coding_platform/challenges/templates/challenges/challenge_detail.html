@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}{{ challenge.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="text-primary">{{ challenge.title }}</h2>
+  <p>{{ challenge.description|safe }}</p>
+
+  <h4>Sample Test Cases</h4>
+  <ul>
+    {% for test in sample_testcases %}
+      <li>
+        <strong>Input:</strong> {{ test.input }}<br>
+        <strong>Output:</strong> {{ test.expected_output }}
+      </li>
+    {% endfor %}
+  </ul>
+
+  <hr>
+
+  <h4 class="mt-4">Submit Your Code</h4>
+  <form method="post" action="{% url 'challenges:submit_code' challenge.id %}" onsubmit="return syncEditor();">
+    {% csrf_token %}
+    <textarea id="codeEditor" name="code" hidden required></textarea>
+    <div id="editorBox" class="mb-3"></div>
+    <button type="submit" class="btn btn-success">Submit</button>
+  </form>
+</div>
+
+<!-- ✅ CodeMirror -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+
+<script>
+  // ✅ Initialize CodeMirror inside a <div> instead of replacing <textarea> directly
+  const textarea = document.getElementById("codeEditor");
+  const editor = CodeMirror(document.getElementById("editorBox"), {
+    value: textarea.value || "# Write your Python code here\n",
+    lineNumbers: true,
+    mode: "python",
+    theme: "default",
+  });
+
+  function syncEditor() {
+    // ✅ Update hidden <textarea> with CodeMirror content
+    textarea.value = editor.getValue();
+    return true; // allow form to submit
+  }
+</script>
+{% endblock %}

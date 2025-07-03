@@ -1,0 +1,27 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f8f9fa;
+}
+
+.navbar {
+  border-bottom: 2px solid #dee2e6;
+}
+
+.btn-primary {
+  background-color: #004aad;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #00357d;
+}
+
+.card {
+  border-radius: 0.75rem;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+.dark-mode {
+  background-color: #121212 !important;
+  color: #eee !important;
+}

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="container mt-5 text-center">
+  <h2 class="text-primary">Welcome to the Coding Contest Platform 🚀</h2>
+  <p class="lead mt-3">Ready to test your coding skills?</p>
+
+  <div class="mt-4">
+    <a href="{% url 'challenge_list' %}" class="btn btn-outline-success btn-lg mx-2">View Challenges</a>
+    <a href="{% url 'profile' %}" class="btn btn-outline-info btn-lg mx-2">My Profile</a>
+  </div>
+</div>
+{% endblock %}

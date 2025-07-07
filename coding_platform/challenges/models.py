@@ -7,6 +7,7 @@ class Challenge(models.Model):
     title = models.CharField(max_length=255)
     description = RichTextField()
     time_limit = models.FloatField()
+    contest = models.ForeignKey('contests.Contest', on_delete=models.CASCADE, default=1)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

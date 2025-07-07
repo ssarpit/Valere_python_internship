@@ -19,33 +19,64 @@
   <hr>
 
   <h4 class="mt-4">Submit Your Code</h4>
-  <form method="post" action="{% url 'challenges:submit_code' challenge.id %}" onsubmit="return syncEditor();">
-    {% csrf_token %}
-    <textarea id="codeEditor" name="code" hidden required></textarea>
-    <div id="editorBox" class="mb-3"></div>
-    <button type="submit" class="btn btn-success">Submit</button>
-  </form>
+  <div class="mb-3" id="editorBox"></div>
+<button type="button" class="btn btn-success" onclick="submitCode()">Submit</button>
+
+
 </div>
 
 <!-- ✅ CodeMirror -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+<div id="resultsBox" class="mt-4"></div> <!-- Add this inside content block before script -->
 
 <script>
-  // ✅ Initialize CodeMirror inside a <div> instead of replacing <textarea> directly
-  const textarea = document.getElementById("codeEditor");
   const editor = CodeMirror(document.getElementById("editorBox"), {
-    value: textarea.value || "# Write your Python code here\n",
+value: `{{ previous_submission.code|default:"# Write your Python code here"|escapejs }}`,
     lineNumbers: true,
     mode: "python",
     theme: "default",
   });
 
-  function syncEditor() {
-    // ✅ Update hidden <textarea> with CodeMirror content
-    textarea.value = editor.getValue();
-    return true; // allow form to submit
+  function submitCode() {
+  const code = editor.getValue();
+  const challengeId = "{{ challenge.id }}";
+
+  if (!code.trim()) {
+    alert("Please write some code before submitting.");
+    return;
   }
+
+  fetch(`/api/submit/${challengeId}/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": "{{ csrf_token }}"
+    },
+    body: JSON.stringify({ code: code })
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(data => {
+        throw new Error(data.error || 'Unknown error');
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
+    alert("✅ Submission stored successfully!\n\nAdmin will review and publish results later.");
+    console.log("Submitted code:", code);
+    window.location.href="/contests/1/"
+
+  })
+  .catch(error => {
+    console.error("Error:", error);
+    alert("❌ Submission failed. " + error.message);
+  });
+}
+
 </script>
+
+
 {% endblock %}

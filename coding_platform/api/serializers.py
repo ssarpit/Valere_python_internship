@@ -8,8 +8,14 @@ class ChallengeSerializer(serializers.ModelSerializer):
         model = Challenge
         fields = ['id', 'title', 'description', 'time_limit']
 
+# serializers.py
 class SubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submission
-        fields = ['id', 'challenge', 'user', 'code', 'status', 'execution_time', 'submitted_at']
+        fields = ['id', 'challenge', 'code', 'user', 'status', 'execution_time', 'score', 'submitted_at']
+        read_only_fields = ['user', 'status', 'execution_time', 'score', 'submitted_at']
 
+
+    def create(self, validated_data):
+        validated_data['submitted_by'] = self.context['request'].user
+        return super().create(validated_data)

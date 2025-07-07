@@ -8,8 +8,8 @@
 
 ### 👤 User Authentication
 
-* Register/login/logout via API using JWT tokens
-* `register_token.html` and `login_token.html` for API-based UI
+* Register/login/logout via sessions
+* `register.html` and `login.html` for API-based UI
 * Auth guard using `localStorage` for protected routes
 
 ### 👨‍💼 Admin Challenge Management
@@ -32,7 +32,7 @@
 ### ⚖️ Tech Stack
 
 * Django 5.x, SQLite (or Postgres ready)
-* Django REST Framework (JWT Auth)
+
 * Bootstrap 5 + custom JS
 * CodeMirror for code editing
 
@@ -96,8 +96,6 @@ Visit: `http://127.0.0.1:8000/`
 
 ### Auth
 
-* `POST /api/token/` → Login
-* `POST /api/register/` → Register user (via API)
 
 ### Challenges
 
@@ -116,8 +114,10 @@ Visit: `http://127.0.0.1:8000/`
 | Page             | Path                | Purpose                  |
 | ---------------- | ------------------- | ------------------------ |
 | Home             | `/`                 | Landing page             |
-| Register (API)   | `/api-register/`    | Token-based registration |
-| Login (API)      | `/api-login/`       | Token-based login        |
+| Register (API)   | `/register/`    | session
+registration |
+| Login (API)      | `/login/`       | session
+ login        |
 | Dashboard        | `/dashboard/`       | After login              |
 | Challenge List   | `/challenges/`      | Browse challenges        |
 | Challenge Detail | `/challenges/<id>/` | View + submit code       |

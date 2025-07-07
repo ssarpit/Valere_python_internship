@@ -22,8 +22,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('users/', include('users.urls')), 
     path('api/', include('api.urls')),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    # path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('', landing_view, name='landing'),
     path('contests/', include('contests.urls', namespace='contests')),  
     path('challenges/', include('challenges.urls', namespace='challenges'))

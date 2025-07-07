@@ -18,7 +18,7 @@ class ContestChallenge(models.Model):
     challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE, related_name='contest_challenges')
     # challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE, related_name='contest_challenges')
     # challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE, related_name='contest_challenges')
-
+    
     class Meta:
         unique_together = ('contest', 'challenge')
 
@@ -26,11 +26,20 @@ class ContestChallenge(models.Model):
         return f"{self.challenge.title} in {self.contest.title}"
 
 
-
-class ContestParticipant(models.Model):
-    contest = models.ForeignKey('Contest', on_delete=models.CASCADE)
+class UserContest(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    joined_at = models.DateTimeField(auto_now_add=True)
+    contest = models.ForeignKey(Contest, on_delete=models.CASCADE)
+    started_at = models.DateTimeField(auto_now_add=True)
+    submitted = models.BooleanField(default=False)
 
+
+class ContestSubmission(models.Model):
+    contest = models.ForeignKey(Contest, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    time_taken = models.IntegerField(null=True, blank=True)
     class Meta:
         unique_together = ['contest', 'user']
+
+    def __str__(self):
+        return f"{self.user.username} submitted {self.contest.title}"

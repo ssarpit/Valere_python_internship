@@ -3,68 +3,51 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 import io, contextlib
 
-from .models import Challenge, TestCase
+from .models import Challenge
 from submissions.models import Submission
 from contests.models import ContestChallenge
+from django.utils.timezone import now
 
 
 @login_required
+
 def challenge_detail(request, challenge_id):
-    challenge = get_object_or_404(Challenge, pk=challenge_id)
-    sample_testcases = challenge.test_cases.filter(is_hidden=False)
+    challenge = get_object_or_404(Challenge, pk=challenge_id)    
+    # ✅ Get the user's latest submission for this challenge, if any
+    previous_submission = None
+    if request.user.is_authenticated:
+        previous_submission = Submission.objects.filter(
+            user=request.user,
+            challenge=challenge
+            ).order_by('-submission_time').first()
 
     return render(request, 'challenges/challenge_detail.html', {
         'challenge': challenge,
-        'sample_testcases': sample_testcases,
+        'previous_submission': previous_submission,
     })
 
 
+
 @login_required
+
 def submit_code(request, challenge_id):
     challenge = get_object_or_404(Challenge, pk=challenge_id)
-    user = request.user
 
     if request.method == 'POST':
-        code = request.POST['code']
-        test_cases = challenge.test_cases.filter(is_hidden=True)
+        code = request.POST.get('code')
 
-        result = "Accepted"
-        for test in test_cases:
-            try:
-                lines = test.input.strip().split('\n')
-                idx = 0
-                def fake_input():
-                    nonlocal idx
-                    val = lines[idx]
-                    idx += 1
-                    return val
-
-                output = io.StringIO()
-                with contextlib.redirect_stdout(output):
-                    exec(code, {'input': fake_input})
-
-                if output.getvalue().strip() != test.expected_output.strip():
-                    result = "Wrong Answer"
-                    break
-            except Exception:
-                result = "Runtime Error"
-                break
+        # 🚨 Replace this with actual logic to check output vs test cases
+        passed_all = True  # You can replace this later with logic
 
         Submission.objects.create(
-            user=user,
+            user=request.user,
             challenge=challenge,
             code=code,
-            status=result,
+            status='Accepted' if passed_all else 'Rejected',
+            submission_time=now()
         )
 
-        # ✅ Redirect to contest detail if challenge is part of a contest
-        contest_challenge = challenge.contest_challenges.first()
-        if contest_challenge:
-            return redirect('contests:contest_detail', contest_id=contest_challenge.contest.id)
-        else:
-            return redirect('dashboard')  # fallback
-
-    return redirect('challenges:challenge_detail', challenge_id=challenge.id)  # fallback for GET
+        return redirect('challenges:challenge_detail', challenge_id=challenge.id)
 
 
 @login_required

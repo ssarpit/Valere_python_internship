@@ -14,7 +14,7 @@ class RegisterForm(UserCreationForm):
     # Remove help_text on username and password
     username = forms.CharField(
         max_length=150,
-        help_text='',  # 👈 This removes the default help text
+        help_text='',  #  This removes the default help text
     )
 
     password2 = forms.CharField(

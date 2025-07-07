@@ -10,12 +10,11 @@ from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from datetime import datetime
 from contests.models import Contest
-
 from .models import UserProfile
 from .forms import RegisterForm
 
 
-# Register View — with OTP generation and email sending
+# Register view, with OTP generation and email sending
 def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -74,7 +73,7 @@ def verify_otp(request):
         user_data = request.session.get("pending_user")
         password = request.session.get("password_for_otp")
 
-        # Check if OTP expired
+# Check if OTP expired
         if otp_time_str:
             otp_time = datetime.fromisoformat(otp_time_str)
             if (datetime.now() - otp_time).total_seconds() > 300:
@@ -112,8 +111,6 @@ def verify_otp(request):
     return render(request, "users/verify_otp.html")
 
 
-# Login View
-
 def login_view(request):
     form = AuthenticationForm(request, data=request.POST or None)
 
@@ -129,20 +126,12 @@ def login_view(request):
     return render(request, 'users/login.html', {'form': form})
 
 
-# Logout View
 def logout_view(request):
     logout(request)
     messages.info(request, "You have been logged out.")
     return redirect('login')
 
 
-# Home View
-# @login_required
-# def home(request):
-#     return render(request, "users/home.html")
-
-
-# Profile View
 @login_required
 def profile(request):
     user = request.user

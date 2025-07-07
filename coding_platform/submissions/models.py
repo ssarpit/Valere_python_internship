@@ -3,25 +3,26 @@ from django.conf import settings
 from challenges.models import Challenge
 from contests.models import Contest
 
+from django.db import models
+from django.conf import settings
+from challenges.models import Challenge
+
 class Submission(models.Model):
     STATUS_CHOICES = [
+        ('Pending', 'Pending'),
         ('Accepted', 'Accepted'),
-        ('Wrong Answer', 'Wrong Answer'),
-        ('Time Limit Exceeded', 'Time Limit Exceeded'),
-        ('Compilation Error', 'Compilation Error'),
-        ('Runtime Error', 'Runtime Error'),
+        ('Rejected', 'Rejected'),
     ]
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='submissions')
-    challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE, related_name='submissions')
-    contest = models.ForeignKey(Contest, on_delete=models.SET_NULL, null=True, blank=True, related_name='submissions')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE)
     code = models.TextField()
-    status = models.CharField(max_length=30, choices=STATUS_CHOICES)
-    execution_time = models.FloatField()
-    submitted_at = models.DateTimeField(auto_now_add=True)
     score = models.IntegerField(default=0)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
+    submission_time = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
-        return f"{self.user.username}'s submission to {self.challenge.title}"
+        return f'{self.user.username} - {self.challenge.title} ({self.status})'
 
 
 class Leaderboard(models.Model):

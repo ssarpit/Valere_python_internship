@@ -1,16 +1,47 @@
-<h2>👤 Welcome, {{ request.user.username }}</h2>
-<p>Email: {{ request.user.email }}</p>
-<p>DOB: {{ profile.dob }}</p>
-<p>Phone: {{ profile.phone }}</p>
+{% extends 'base.html' %}
+{% block title %}Welcome to Weekly Coding Contest{% endblock %}
 
-<h3 class="mt-4">🧠 Available Contests</h3>
-<ul class="list-group">
-  {% for contest in contests %}
-    <li class="list-group-item d-flex justify-content-between align-items-center">
-      <strong>{{ contest.name }}</strong>
-      <a class="btn btn-outline-primary" href="{% url 'contests:contest_detail' contest.id %}">Start Contest</a>
-    </li>
-  {% empty %}
-    <li class="list-group-item">No contests available</li>
-  {% endfor %}
-</ul>
+{% block content %}
+<style>
+  .profile-box {
+    background: #f0f8ff;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+  }
+  .contest-list {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .heading {
+    color: #1d3557;
+    font-weight: bold;
+  }
+</style>
+
+<div class="container mt-5">
+  <div class="profile-box">
+    <h2 class="heading">👋 Welcome to Weekly Coding Contest, {{ request.user.username }}!</h2>
+    <p><strong>Email:</strong> {{ request.user.email }}</p>
+    <p><strong>DOB:</strong> {{ profile.dob }}</p>
+    <p><strong>Phone:</strong> {{ profile.phone }}</p>
+  </div>
+
+  <div class="contest-list">
+    <h4>🚀 Available Contests</h4>
+    <ul class="list-group mt-3">
+      {% for contest in contests %}
+      <p>{{ contest.description }}</p>
+          <span><strong>{{ contest.name }}</strong></span>
+          <a class="btn btn-primary" href="{% url 'contests:contest_detail' contest.id %}">Start Contest</a>
+        </li>
+      {% empty %}
+        <li class="list-group-item">No contests available</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

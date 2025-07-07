@@ -1,11 +1,27 @@
 {% extends 'base.html' %}
-{% block title %}Contest Detail{% endblock %}
+{% block title %}{{ contest.name }} - Contest Details{% endblock %}
 
 {% block content %}
+<style>
+  .timer-box {
+    font-size: 1.5rem;
+    color: #e63946;
+    background: #f8f9fa;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 10px;
+    width: fit-content;
+  }
+</style>
+
 <div class="container mt-5">
-  <h3>{{ contest.name }}</h3>
-  <p><strong>Start:</strong> {{ contest.start_time }} | <strong>End:</strong> {{ contest.end_time }}</p>
+  <h2 class="mb-3 text-primary">🏁 {{ contest.name }}</h2>
+  <p><strong>Start Date:</strong> {{ contest.start_time|date:"F j, Y" }}</p>
+  <p><strong>End Date:</strong> {{ contest.end_time|date:"F j, Y" }}</p>
   <p>{{ contest.description }}</p>
+
+  <!-- 60-Minute Countdown Timer -->
+  <div class="timer-box" id="timer">⏳ Time Remaining: <span id="timeLeft">Loading...</span></div>
 
   <h4 class="mt-4">🧠 Challenges in This Contest</h4>
   <ul class="list-group">
@@ -21,10 +37,71 @@
     {% endfor %}
   </ul>
 
-  {% if all_solved %}
-    <div class="mt-4 text-center">
-      <a href="{% url 'challenges:leaderboard' %}" class="btn btn-primary btn-lg">🎉 Submit Contest & View Leaderboard</a>
-    </div>
-  {% endif %}
+  <div class="mt-4 text-center">
+    <button class="btn btn-success btn-lg" onclick="submitContest()">🎯 Submit Contest</button>
+    <!-- View Leaderboard (initially hidden) -->
+    <a id="leaderboardLink" href="{% url 'challenges:leaderboard' %}" class="btn btn-outline-primary mt-3 d-none">🏁 View Leaderboard</a>
+  </div>
 </div>
+
+<!-- Timer Script: 60 minutes from user started_at -->
+<script>
+  const startedAt = new Date("{{ started_at|date:'c' }}").getTime();  // in ms
+  const endTime = startedAt + (60 * 60 * 1000); // 60 mins in ms
+
+  const timerElement = document.getElementById("timeLeft");
+  let timerInterval;
+
+  function updateTimer() {
+    const now = new Date().getTime();
+    const timeLeft = endTime - now;
+
+    if (timeLeft <= 0) {
+      timerElement.innerHTML = "⏱️ Time's up!";
+      clearInterval(timerInterval);
+    } else {
+      const minutes = Math.floor((timeLeft / 1000 / 60) % 60);
+      const seconds = Math.floor((timeLeft / 1000) % 60);
+      timerElement.innerHTML = `${minutes}m ${seconds}s`;
+    }
+  }
+
+  timerInterval = setInterval(updateTimer, 1000);
+  updateTimer();
+
+  function submitContest() {
+    const now = new Date().getTime();
+    const timeTakenSeconds = Math.floor((now - startedAt) / 1000);
+
+    clearInterval(timerInterval);
+
+    fetch(`/contests/submit_contest/{{ contest.id }}/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify({ time_taken: timeTakenSeconds })
+    })
+    .then(async response => {
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        const text = await response.text();
+        throw new Error("Invalid server response:\n" + text);
+      }
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Unknown error");
+
+      alert(data.message);
+      document.getElementById("leaderboardLink").classList.remove("d-none");
+    })
+    .catch(error => {
+      console.error("Submission error:", error);
+      alert("❌ Submission failed: " + error.message);
+    });
+  }
+</script>
+
+
 {% endblock %}

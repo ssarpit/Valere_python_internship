@@ -1,4 +1,3 @@
-# ✅ views.py
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse
@@ -12,6 +11,12 @@ from contests.models import ContestParticipation
 from rest_framework.response import Response
 from submissions.models import Submission
 from django.db.models import Sum
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from contests.models import ContestChallenge, Contest
+from .serializers import ChallengeSerializer
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def submit_code(request, challenge_id):
@@ -52,6 +57,7 @@ def leaderboard(request):
     )
     return Response(list(leaderboard))
     
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def execute_code(request, challenge_id):
@@ -115,3 +121,22 @@ def execute_code(request, challenge_id):
         return JsonResponse({"error": "Challenge not found"}, status=404)
     except Exception as e:
         return JsonResponse({"error": str(e), "trace": traceback.format_exc()}, status=500)
+
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_contest_challenges(request, contest_id):
+    try:
+        # Validate contest exists
+        contest = Contest.objects.get(id=contest_id)
+              
+        # Get challenges via M2M table
+        contest_challenges = ContestChallenge.objects.filter(contest=contest).select_related('challenge')
+        challenges = [cc.challenge for cc in contest_challenges]
+
+        # Serialize
+        serializer = ChallengeSerializer(challenges, many=True)
+        return Response(serializer.data)
+    except Contest.DoesNotExist:
+        return Response({"error": "Contest not found"}, status=404)

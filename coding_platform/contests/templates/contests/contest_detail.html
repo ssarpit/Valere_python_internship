@@ -20,28 +20,16 @@
   <p><strong>End Date:</strong> {{ contest.end_time|date:"F j, Y" }}</p>
   <p>{{ contest.description }}</p>
 
-  <!-- Countdown Timer -->
+  <!-- Timer -->
   <div class="timer-box" id="timer">⏳ Time Remaining: <span id="timeLeft"></span></div>
 
+  <!-- ✅ Dynamic Challenge List -->
   <h4 class="mt-4">🧠 Challenges in This Contest</h4>
-  <ul class="list-group">
-    {% for challenge in challenges %}
-      <li class="list-group-item d-flex justify-content-between align-items-center {% if challenge.id in solved_challenges %}list-group-item-success{% endif %}">
-        {{ challenge.title }}
-       {% if not already_submitted %}
-  <a href="{% url 'challenges:challenge_detail' challenge.id %}" class="btn btn-outline-success">
-    Solve
-  </a>
-{% else %}
-  <span class="text-muted">✅ Submitted</span>
-{% endif %}
-
-      </li>
-    {% empty %}
-      <li class="list-group-item">No challenges added.</li>
-    {% endfor %}
+  <ul class="list-group" id="challengeList">
+    <li class="list-group-item">Loading challenges...</li>
   </ul>
 
+  <!-- Submit Button + Leaderboard -->
   <div class="mt-4 text-center">
     {% if not already_submitted %}
       <button id="submitBtn" class="btn btn-success btn-lg" onclick="submitContest()">🎯 Submit Contest</button>
@@ -49,49 +37,41 @@
     <a href="{% url 'challenges:leaderboard' %}" class="btn btn-outline-primary mt-3">🏁 View Leaderboard</a>
   </div>
 
-  <!-- Live Leaderboard Placeholder -->
-  <div id="liveLeaderboard" class="mt-5"></div>
-</div>
-
-<!-- ✅ Success Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-success">
-      <div class="modal-header bg-success text-white">
-        <h5 class="modal-title" id="successModalLabel">🎉 Contest Submitted</h5>
-      </div>
-      <div class="modal-body">
-        Your contest was successfully submitted! Redirecting to leaderboard...
+  <!-- Success Modal -->
+  <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-success">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title" id="successModalLabel">🎉 Contest Submitted</h5>
+        </div>
+        <div class="modal-body">Your contest was successfully submitted! Redirecting to leaderboard...</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ⏱️ Timer + Submission Script -->
-<!-- ⏱️ Timer + Submission Script -->
+<!-- ✅ JavaScript -->
 <script>
   const startedAt = new Date("{{ started_at|date:'c' }}").getTime();
   const contestId = {{ contest.id }};
-  const endTime = startedAt + (60 * 60 * 1000); // 60 minutes in ms
+  const endTime = startedAt + (60 * 60 * 1000); // 60 min
 
   const timerElement = document.getElementById("timeLeft");
   let timerInterval;
 
   function updateTimer() {
-    const nowTime = new Date().getTime();
-    const timeLeft = endTime - nowTime;
+    const now = new Date().getTime();
+    const left = endTime - now;
 
-    if (timeLeft <= 0) {
+    if (left <= 0) {
       timerElement.innerHTML = "⏱️ Time's up!";
       clearInterval(timerInterval);
       disableSubmitButton();
-      autoSubmitContest();  // Auto-submit
+      autoSubmitContest(); // ⏱️ Auto-submit
     } else {
-      // Calculate remaining minutes and seconds from the timeLeft
-      const remainingSeconds = Math.floor(timeLeft / 1000);
-      const minutes = Math.floor(remainingSeconds / 60);
-      const seconds = remainingSeconds % 60;
-      timerElement.innerHTML = `${minutes}m ${seconds}s`;
+      const min = Math.floor(left / 60000);
+      const sec = Math.floor((left % 60000) / 1000);
+      timerElement.innerHTML = `${min}m ${sec}s`;
     }
   }
 
@@ -103,13 +83,12 @@
     }
   }
 
-  function autoSubmitContest(isManual = false) {
-    // Calculate elapsed time in seconds from the contest start
-    const nowTime = new Date().getTime();
-    const timeTakenSeconds = Math.floor((nowTime - startedAt) / 1000);
-    const minutes = Math.floor(timeTakenSeconds / 60);
-    const seconds = timeTakenSeconds % 60;
-    const timeTakenFormatted = `${minutes}m:${seconds}s`;
+  function autoSubmitContest() {
+    const now = new Date().getTime();
+    const seconds = Math.floor((now - startedAt) / 1000);
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    const formatted = `${min}m:${sec}s`;
 
     fetch(`/contests/submit_contest/${contestId}/`, {
       method: "POST",
@@ -117,46 +96,72 @@
         "Content-Type": "application/json",
         "X-CSRFToken": "{{ csrf_token }}"
       },
-      body: JSON.stringify({ 
-        time_taken_seconds: timeTakenSeconds,
-        time_taken_display: timeTakenFormatted
+      body: JSON.stringify({
+        time_taken_seconds: seconds,
+        time_taken_display: formatted
       })
     })
-    .then(async response => {
-      const contentType = response.headers.get("content-type") || "";
-      if (!contentType.includes("application/json")) {
-        const text = await response.text();
-        throw new Error("Invalid server response:\n" + text);
-      }
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || data.message || "Unknown error");
-
+    .then(res => res.json())
+    .then(data => {
       clearInterval(timerInterval);
       disableSubmitButton();
 
-      // ✅ Show modal
       const modal = new bootstrap.Modal(document.getElementById('successModal'));
       modal.show();
-
-      // ⏳ Redirect to leaderboard after 3 seconds
       setTimeout(() => {
         window.location.href = "{% url 'challenges:leaderboard' %}";
       }, 3000);
     })
-    .catch(error => {
-      console.error("Submission error:", error);
-      alert("❌ Submission failed: " + error.message);
+    .catch(err => {
+      alert("❌ Submission failed: " + err.message);
+      console.error("Submission error:", err);
     });
   }
 
   function submitContest() {
-    autoSubmitContest(true);  // Manual trigger
+    autoSubmitContest(true);
   }
 
-  // ⏳ Start timer
+  // 🧠 Fetch Challenges for the Contest
+  fetch(`/api/contests/${contestId}/challenges/`)
+  .then(response => {
+    if (!response.ok) {
+      throw new Error("Failed to load challenges.");
+    }
+    return response.json();
+  })
+  .then(data => {
+    const list = document.getElementById("challengeList");
+    list.innerHTML = ""; // ✅ clear loading text
+
+    if (data.length === 0) {
+      list.innerHTML = "<li class='list-group-item'>No challenges available.</li>";
+      return;
+    }
+
+    data.forEach(challenge => {
+      const li = document.createElement("li");
+      li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+      li.innerHTML = `
+        <span>${challenge.title}</span>
+        {% if not already_submitted %}
+          <a href="/challenges/${challenge.id}/" class="btn btn-outline-success">Solve</a>
+        {% else %}
+          <span class="text-muted">✅ Submitted</span>
+        {% endif %}
+      `;
+
+      list.appendChild(li);
+    });
+  })
+  .catch(error => {
+    console.error("Challenge fetch error:", error);
+    const list = document.getElementById("challengeList");
+    list.innerHTML = `<li class="list-group-item text-danger">❌ Failed to load challenges</li>`;
+  });
+
   timerInterval = setInterval(updateTimer, 1000);
   updateTimer();
 </script>
-
 {% endblock %}

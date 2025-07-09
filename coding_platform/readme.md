@@ -1,60 +1,81 @@
-# Django Coding Contest Platform - README
 
-> 🌟 A full-stack Django-based platform for hosting coding contests with user authentication, API support, leaderboard, and admin management. Built with Django + Django REST Framework + Bootstrap + CodeMirror.
+# 🧠 Django Coding Contest Platform
+
+> 🌟 A full-stack Django-based platform for hosting coding contests with authentication, real-time judging, leaderboard, and secure admin management. Built with Django + Bootstrap + CodeMirror + JavaScript.
 
 ---
 
 ## 🔄 Features Implemented
 
 ### 👤 User Authentication
-
 * Register/login/logout via sessions
-* `register.html` and `login.html` for API-based UI
-* Auth guard using `localStorage` for protected routes
+* Session-based auth with guards using `localStorage`
+* Superuser login to admin
 
-### 👨‍💼 Admin Challenge Management
+### 👨‍💼 Admin Management
+* Add/edit/delete challenges and test cases via Django Admin
+* Supports public & hidden test cases
+* Create contests with timer (start/end time)
+* Challenge scoring config per contest
 
-* Add/edit/delete challenges and test cases via Django admin
-* Contest creation with start/end time
-* Supports hidden/private test cases
+### 💻 Code Submission & Evaluation
+* CodeMirror-based editor with syntax highlighting
+* Code executed using Python `exec()` (in a safe sandbox)
+* Docker-ready setup for memory/time limits (optional)
+* Test Run vs Final Submit:
+  - "Test Run" only checks public test cases
+  - "Final Submit" runs all (hidden included)
+* Real-time result updates for each test case
+* Tracks passed/failed test cases and total score
+* Code execution timeout and error capture
 
-### ✅ Challenge + Code Submission
+### 🧾 Submission History
+* Shows user’s previous submissions for each challenge
+* Displays status (Accepted / Rejected), score, and timestamp
 
-* Submit code via textarea with CodeMirror editor
-* Execute and evaluate using Python `exec()` (safe, limited scope)
-* Score per test case
+### ⏳ Contest Timer
+* Contest starts when user clicks "Start Contest"
+* Countdown timer on contest page
+* Auto-submit when time runs out
+* Prevents double submission after submit or timeout
 
-### 🔹 Leaderboard
+### 🏆 Leaderboard
+* Real-time leaderboard for each contest
+* Sorted by total score and submission time
+* Auto-refresh with AJAX polling
+* User rank visibility post-submission
 
-* Auto-updated leaderboard model per contest
-* Total score + time based sorting
-
-### ⚖️ Tech Stack
-
-* Django 5.x, SQLite (or Postgres ready)
-
-* Bootstrap 5 + custom JS
-* CodeMirror for code editing
+### 📩 Email Notification
+* Sends confirmation email after final submission
+* Uses configured email backend and OTP system
 
 ---
 
-## 🌐 Live Demo / Screenshots
+## ⚖️ Tech Stack
+
+* Django 5.x, SQLite (PostgreSQL-compatible)
+* JavaScript, Bootstrap 5
+* CodeMirror (code editor)
+* `exec()` for Python code execution (Docker-ready)
+* Optional: Docker for secure code sandboxing
+
+---
+
+## 📸 Live Demo / Screenshots
 
 > Include screenshots in `/screenshots/` or link here
-
-![ER Diagram](link-to-er-image-if-needed.png)
 
 ---
 
 ## 🚀 Installation Instructions
 
-### 1. Clone and Setup Virtual Env
+### 1. Clone & Setup
 
 ```bash
 git clone https://github.com/yourname/coding_platform.git
 cd coding_platform
 python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate (Windows)
+source venv/bin/activate  # or venv\Scripts\activate
 ```
 
 ### 2. Install Requirements
@@ -63,9 +84,19 @@ source venv/bin/activate  # or venv\Scripts\activate (Windows)
 pip install -r requirements.txt
 ```
 
-### 3. Environment Variables
+### 3. Create requirements.txt
 
-Create `.env` file (already added to `.gitignore`):
+If you haven't created it yet:
+
+```bash
+pip freeze > requirements.txt
+```
+
+This saves all installed packages so others can install the same versions.
+
+### 4. Environment Variables
+
+Create a `.env` file:
 
 ```env
 EMAIL_HOST_USER=your-email@gmail.com
@@ -74,7 +105,7 @@ SECRET_KEY=your-django-secret-key
 DEBUG=True
 ```
 
-### 4. Apply Migrations & Create Superuser
+### 5. Run Migrations & Superuser Setup
 
 ```bash
 python manage.py makemigrations
@@ -82,26 +113,23 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-### 5. Run the Development Server
+### 6. Run Server
 
 ```bash
 python manage.py runserver
 ```
 
-Visit: `http://127.0.0.1:8000/`
+Access: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
 
 ---
 
-## 🛡️ API Endpoints
-
-### Auth
-
+## 🔗 API Endpoints (Optional)
 
 ### Challenges
 
-* `GET /api/challenges/` → List all
-* `GET /api/challenges/<id>/` → Detail
-* `POST /api/submit/` → Submit code
+* `GET /api/challenges/`
+* `GET /api/challenges/<id>/`
+* `POST /api/submit/`
 
 ### Leaderboard
 
@@ -109,63 +137,70 @@ Visit: `http://127.0.0.1:8000/`
 
 ---
 
-## 🖊️ Frontend Pages
+## 🖥️ Frontend Pages Overview
 
-| Page             | Path                | Purpose                  |
-| ---------------- | ------------------- | ------------------------ |
-| Home             | `/`                 | Landing page             |
-| Register (API)   | `/register/`    | session
-registration |
-| Login (API)      | `/login/`       | session
- login        |
-| Dashboard        | `/dashboard/`       | After login              |
-| Challenge List   | `/challenges/`      | Browse challenges        |
-| Challenge Detail | `/challenges/<id>/` | View + submit code       |
-| Leaderboard      | `/leaderboard/`     | Per contest              |
+| Page             | URL Path              | Purpose                     |
+| ---------------- | --------------------- | --------------------------- |
+| Home             | `/`                   | Welcome page                |
+| Register         | `/register/`          | Sign-up (session-based)     |
+| Login            | `/login/`             | Login (session-based)       |
+| Dashboard        | `/dashboard/`         | After login                 |
+| Challenge List   | `/challenges/`        | Browse available challenges |
+| Challenge Detail | `/challenges/<id>/`   | Solve & submit code         |
+| Leaderboard      | `/leaderboard/`       | View contest results        |
 
 ---
 
-## 🎓 Admin Guide
+## 🛠️ Admin Guide
 
-Visit `/admin/` and log in with your superuser account.
-You can manage:
+Visit `/admin/` using the superuser account to manage:
 
 * Users
 * Challenges
 * Test cases
 * Contests
 * Leaderboard entries
+* Submissions
 
 ---
 
-## 🚨 Security Notes
+## 🔐 Security Notes
 
-* Uses Django's `exec()` sandboxed with restricted scope
-* Validates OTP for email
-* Uses JWT for secure API access
+* Code executed in a restricted sandbox (`exec()` with scope control)
+* Docker container support for time/memory limits
+* OTP email verification
+* No access to system resources or file I/O
 
 ---
 
-## 📚 Acknowledgements
+## 👨‍🎓 Acknowledgements
 
 * Django Documentation
-* DRF + JWT
+* Django REST Framework
 * CodeMirror
+* Bootstrap
 
 ---
 
-## 🌟 Project by Arpit Jain (B.Tech CSE - AIML)
+## 👨‍💻 Author
 
-> Coding Contest Platform Assignment - Acropolis Institute of Technology & Research
-
----
-
-## 🚜 For Deployment
-
-* Configure `ALLOWED_HOSTS` in `settings.py`
-* Use `whitenoise` or S3 for static
-* Use Gunicorn + Nginx or Railway/Render/Vercel
+**Arpit Jain**  
+🎓 B.Tech CSE - AIML  
+🏫 Acropolis Institute of Technology & Research  
+📧 your.email@example.com  
+🔗 [GitHub](https://github.com/yourusername)  
+🔗 [LinkedIn](https://linkedin.com/in/yourprofile)
 
 ---
 
-Ready to launch! ✨
+## 🚢 Deployment Notes
+
+* Set `ALLOWED_HOSTS` in `settings.py`
+* Use `whitenoise` or S3 for static files
+* Deployment via:
+  - Gunicorn + Nginx
+  - Railway, Render, or Vercel
+
+---
+
+✅ Ready to launch and compete! ✨

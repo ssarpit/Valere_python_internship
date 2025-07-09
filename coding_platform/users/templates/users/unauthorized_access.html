@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Access Denied</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f8d7da;
+      color: #721c24;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .message-box {
+      background-color: #f5c6cb;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(114, 28, 36, 0.5);
+      text-align: center;
+    }
+    h1 {
+      margin: 0 0 20px;
+      font-size: 32px;
+    }
+    p {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+    a.button {
+      background-color: #165e04;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+    a.button:hover {
+      background-color: #f50519;
+    }
+  </style>
+</head>
+<body>
+  <div class="message-box">
+    <p>Can not able to open this page. Please login to access this page.</p>
+    <h1>Click on the Login Button</h1>
+    <a href="{% url 'login' %}" class="button">Login</a>
+  </div>
+</body>
+</html>]

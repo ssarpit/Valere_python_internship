@@ -1,5 +1,10 @@
 from django.contrib import admin
-from .models import Contest, ContestChallenge, UserContest, ContestSubmission
+from .models import (
+    Contest,
+    ContestChallenge,
+    ContestSubmission,
+    ContestParticipation  # ✅ updated model name
+)
 
 @admin.register(Contest)
 class ContestAdmin(admin.ModelAdmin):
@@ -13,10 +18,10 @@ class ContestChallengeAdmin(admin.ModelAdmin):
     list_filter = ('contest',)
     search_fields = ('contest__title', 'challenge__title')
 
-@admin.register(UserContest)
-class UserContestAdmin(admin.ModelAdmin):
-    list_display = ('user', 'contest', 'started_at', 'submitted')
-    list_filter = ('submitted', 'contest')
+@admin.register(ContestParticipation)  # ✅ updated here
+class ContestParticipationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'contest', 'start_time', 'submit_time', 'has_submitted')
+    list_filter = ('has_submitted', 'contest')
     search_fields = ('user__username', 'contest__title')
 
 @admin.register(ContestSubmission)

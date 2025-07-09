@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import  login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
@@ -12,7 +12,8 @@ from datetime import datetime
 from contests.models import Contest
 from .models import UserProfile
 from .forms import RegisterForm
-
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
 
 # Register view, with OTP generation and email sending
 def register_view(request):
@@ -107,10 +108,10 @@ def verify_otp(request):
             return redirect('login')
 
         return render(request, "users/verify_otp.html", {"error_message": "Invalid OTP"})
-
+    
     return render(request, "users/verify_otp.html")
 
-
+@permission_classes([IsAuthenticated])
 def login_view(request):
     form = AuthenticationForm(request, data=request.POST or None)
 
@@ -155,7 +156,7 @@ def resend_otp(request):
         messages.success(request, "OTP resent successfully.")
     return redirect('verify_otp')
 
-
+@permission_classes([IsAuthenticated])
 @login_required
 def dashboard_view(request):
     profile = UserProfile.objects.get(user=request.user)
@@ -165,5 +166,6 @@ def dashboard_view(request):
         'contests': contests
     })
 
+@permission_classes([IsAuthenticated])
 def landing_view(request):
     return render(request, 'landing.html')

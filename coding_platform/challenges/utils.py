@@ -5,4 +5,5 @@ def is_challenge_active(challenge):
         contest = challenge.contest_challenges.first().contest
         now = timezone.now()
         return contest.start_time <= now <= contest.end_time
-    return True  # No contest → always available
+    return True 
+ # No contest → always available

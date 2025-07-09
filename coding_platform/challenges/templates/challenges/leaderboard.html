@@ -3,13 +3,22 @@
 
 {% block content %}
 <div class="container mt-4">
+
+  <!-- ✅ Top Right Buttons -->
+  <div class="d-flex justify-content-end mb-3">
+    <a href="{% url 'profile' %}" class="btn btn-outline-primary me-2">👤 Profile</a>
+    <a href="{% url 'logout' %}" class="btn btn-outline-danger">🚪 Logout</a>
+  </div>
+
   <h2 class="text-primary">🏆 Leaderboard</h2>
+
   <table class="table table-bordered mt-3">
     <thead class="thead-dark">
       <tr>
         <th>Rank</th>
         <th>User</th>
         <th>Score</th>
+        <th>Time Taken</th>
       </tr>
     </thead>
     <tbody id="leaderboardBody"></tbody>
@@ -27,12 +36,10 @@
             <td>${index + 1}</td>
             <td>${entry.user__username}</td>
             <td>${entry.total_score}</td>
-      
+            <td>${entry.time_taken_display || ''}</td>
           </tr>`;
         tbody.innerHTML += row;
       });
     });
 </script>
-
-
 {% endblock %}

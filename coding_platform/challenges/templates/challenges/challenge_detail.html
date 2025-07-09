@@ -20,63 +20,90 @@
 
   <h4 class="mt-4">Submit Your Code</h4>
   <div class="mb-3" id="editorBox"></div>
-<button type="button" class="btn btn-success" onclick="submitCode()">Submit</button>
 
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-warning" onclick="submitCode('test')">🧪 Test Run</button>
+    <button type="button" class="btn btn-success" onclick="submitCode('final')">🚀 Final Submit</button>
+  </div>
 
+  <div id="resultsBox" class="mt-4"></div>
 </div>
 
 <!-- ✅ CodeMirror -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
-<div id="resultsBox" class="mt-4"></div> <!-- Add this inside content block before script -->
 
 <script>
   const editor = CodeMirror(document.getElementById("editorBox"), {
-value: `{{ previous_submission.code|default:"# Write your Python code here"|escapejs }}`,
+    value: `{{ previous_submission.code|default:"# Write your Python code here"|escapejs }}`,
     lineNumbers: true,
     mode: "python",
     theme: "default",
   });
 
-  function submitCode() {
-  const code = editor.getValue();
-  const challengeId = "{{ challenge.id }}";
+  function submitCode(type) {
+    const code = editor.getValue();
+    const challengeId = "{{ challenge.id }}";
 
-  if (!code.trim()) {
-    alert("Please write some code before submitting.");
-    return;
-  }
-
-  fetch(`/api/submit/${challengeId}/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": "{{ csrf_token }}"
-    },
-    body: JSON.stringify({ code: code })
-  })
-  .then(response => {
-    if (!response.ok) {
-      return response.json().then(data => {
-        throw new Error(data.error || 'Unknown error');
-      });
+    if (!code.trim()) {
+      alert("Please write some code first.");
+      return;
     }
-    return response.json();
-  })
-  .then(data => {
-    alert("✅ Submission stored successfully!\n\nAdmin will review and publish results later.");
-    console.log("Submitted code:", code);
-    window.location.href="/contests/1/"
+  const endpoint = type === "final"
+  ? `/api/execute/${challengeId}/?type=final`
+  : `/api/execute/${challengeId}/?type=test`;
+  // 👈 add this
 
-  })
-  .catch(error => {
-    console.error("Error:", error);
-    alert("❌ Submission failed. " + error.message);
-  });
-}
+    fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify({ code: code })
+    })
+    .then(response => {
+      if (!response.ok) throw new Error("Server error");
+      return response.json();
+    })
+    .then(data => {
+      const resultsBox = document.getElementById("resultsBox");
+      resultsBox.innerHTML = "<h4>🧪 Test Results</h4>";
 
+      if (data.results) {
+        // Show test-by-test result
+        data.results.forEach((test, idx) => {
+          resultsBox.innerHTML += `
+            <div class="mb-2 p-2 border ${test.passed ? 'border-success' : 'border-danger'}">
+              <strong>Test Case ${idx + 1}</strong><br>
+              Input: ${test.input}<br>
+              Expected: ${test.expected_output}<br>
+              Your Output: ${test.user_output}<br>
+              Result: ${test.passed ? '✅ Passed' : '❌ Failed'}
+            </div>`;
+        });
+      }
+
+      if (data.pass_count !== undefined) {
+        resultsBox.innerHTML += `
+          <hr>
+          <div class="alert alert-info">
+            ✅ Passed: <strong>${data.pass_count}</strong> |
+            ❌ Failed: <strong>${data.fail_count}</strong> |
+            💯 Score: <strong>${data.score}</strong>
+          </div>`;
+      }
+
+      if (type === "final") {
+        alert("✅ Code submitted successfully!");
+        {% comment %} window.location.href = "/contests/1/";  // Adjust redirect as needed {% endcomment %}
+      }
+    })
+    .catch(error => {
+      console.error("Execution failed", error);
+      alert("❌ Error: " + error.message);
+    });
+  }
 </script>
-
-
 {% endblock %}

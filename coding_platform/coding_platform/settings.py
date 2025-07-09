@@ -150,3 +150,4 @@ REST_FRAMEWORK = {
 }
 
 LOGIN_REDIRECT_URL = '/dashboard/'
+

@@ -17,8 +17,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from django.utils.timezone import now
 from contests.models import ContestParticipation
-
-
+from challenges.models import Challenge
+from .tasks import send_contest_submission_email
 
 @permission_classes([IsAuthenticated])
 @login_required
@@ -29,21 +29,24 @@ def contest_detail(request, contest_id):
     user_contest, _ = ContestParticipation.objects.get_or_create(user=request.user, contest=contest)
     start_time = user_contest.start_time
 
-    # Get all challenges linked to this contest
-    contest_challenges = ContestChallenge.objects.filter(contest=contest).select_related('challenge')
-    challenges = [cc.challenge for cc in contest_challenges]
+    all_challenges = Challenge.objects.filter(contest_challenges__contest=contest)
 
-    # Check if user has already submitted the contest
-    already_submitted = ContestSubmission.objects.filter(
+    # ✅ Solved challenge IDs (convert to list so we can check in template)
+    solved_challenges = list(Submission.objects.filter(
         user=request.user,
-        contest=contest
-    ).exists()
+        challenge__in=all_challenges,
+        status="Accepted"  # or your correct success status
+    ).values_list('challenge_id', flat=True))
+
+    already_submitted = user_contest.has_submitted
+
 
     return render(request, 'contests/contest_detail.html', {
         'contest': contest,
-        'challenges': challenges,
+        'challenges': all_challenges,
         'already_submitted': already_submitted,
         'started_at': start_time,
+        'solved_challenges': solved_challenges,  # ✅ Add this!
     })
 
 @api_view(['POST'])
@@ -76,7 +79,13 @@ def submit_contest(request, contest_id):
         participation.time_taken_display = time_taken_display or "N/A"
         participation.save()
 
-        return Response({"message": "Contest submitted!"})
+        send_contest_submission_email.delay(request.user.id, contest_id)
+
+# After user submits contest successfully
+
+        return Response({
+              "message": "Contest submitted!",
+              "total_score": participation.total_score,})
     except ContestParticipation.DoesNotExist:
         return Response({"error": "Participation not found"}, status=404)
 

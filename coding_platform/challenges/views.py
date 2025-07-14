@@ -20,22 +20,23 @@ from submissions.models import Submission
 @permission_classes([IsAuthenticated])
 @login_required
 
-@login_required
 def challenge_detail(request, challenge_id):
     challenge = get_object_or_404(Challenge, id=challenge_id)
-    sample_testcases = TestCase.objects.filter(challenge=challenge, is_hidden=False)
 
-    # ✅ Get the user's last submission
-    previous_submission = Submission.objects.filter(
-        user=request.user,
-        challenge=challenge
-    ).order_by('-id').first()
+    # Get the user's latest submission (if any) for this challenge
+    previous_submission = None
+    if request.user.is_authenticated:
+        previous_submission = Submission.objects.filter(
+            user=request.user,
+            challenge=challenge
+        ).order_by('-submission_time').first()  # latest submission
 
-    return render(request, 'challenges/challenge_detail.html', {
+    context = {
         'challenge': challenge,
-        'sample_testcases': sample_testcases,
-        'previous_submission': previous_submission
-    })
+        'previous_submission': previous_submission,
+        # other context variables you might need
+    }
+    return render(request, 'challenges/challenge_detail.html', context)
 
 @login_required
 def leaderboard_view(request):

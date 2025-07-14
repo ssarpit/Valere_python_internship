@@ -7,6 +7,7 @@ from django.db import models
 
 # from .models import Contest
 
+
 class Contest(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()

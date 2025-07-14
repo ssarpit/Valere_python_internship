@@ -5,16 +5,14 @@ from challenges.models import Challenge, TestCase
 from submissions.models import Submission
 from .utils import run_user_code
 import traceback
-from django.utils import timezone
-from django.http import JsonResponse
-from contests.models import ContestParticipation
+from contests.models import ContestParticipation, ContestChallenge, Contest
 from rest_framework.response import Response
-from submissions.models import Submission
 from django.db.models import Sum
+from django.core.cache import cache
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from contests.models import ContestChallenge, Contest
+from django.core.cache import cache
 from .serializers import ChallengeSerializer
 
 @api_view(['POST'])
@@ -36,6 +34,11 @@ def submit_code(request, challenge_id):
             score=0
         )
 
+        # Invalidate relevant caches
+        cache.delete("leaderboard_cache")
+        if hasattr(challenge, 'contest'):
+            cache.delete(f"contest_challenges_{challenge.contest.id}")
+
         return Response({"message": "Submission stored successfully! Awaiting review."})
 
     except Challenge.DoesNotExist:
@@ -44,19 +47,24 @@ def submit_code(request, challenge_id):
         return Response({"error": str(e)}, status=500)
 
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def leaderboard(request):
-    leaderboard = (
-        ContestParticipation.objects
-        .filter(has_submitted=True)
-        .select_related('user', 'contest')
-        .order_by('-total_score', 'time_taken_seconds')
-        .values('user__username', 'total_score', 'time_taken_display')
-    )
-    return Response(list(leaderboard))
-    
+    cache_key = "leaderboard_cache"
+    data = cache.get(cache_key)
+    if not data:
+        leaderboard = (
+            ContestParticipation.objects
+            .filter(has_submitted=True)
+            .select_related('user', 'contest')
+            .order_by('-total_score', 'time_taken_seconds')
+            .values('user__username', 'total_score', 'time_taken_display')
+        )
+        data = list(leaderboard)
+        cache.set(cache_key, data, timeout=60 * 3)  # Cache for 3 minutes
+
+    return Response(data)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -67,6 +75,12 @@ def execute_code(request, challenge_id):
         user = request.user
 
         challenge = Challenge.objects.get(id=challenge_id)
+        contest = challenge.contest  # Ensure Challenge has FK to Contest
+
+        # Check if user has already submitted the contest
+        participation = ContestParticipation.objects.filter(user=user, contest=contest).first()
+        if participation and participation.has_submitted and run_type == "final":
+            return JsonResponse({"error": "Contest already submitted. No further submissions allowed."}, status=403)
 
         test_cases = TestCase.objects.filter(challenge=challenge)
         if run_type == "test":
@@ -80,22 +94,15 @@ def execute_code(request, challenge_id):
         score = pass_count * 10
 
         if run_type == "final":
-            # ✅ Save submission
             Submission.objects.update_or_create(
                 user=user,
                 challenge=challenge,
                 defaults={
                     "score": score,
                     "status": "Accepted",
-                    "code":code
-                    # optionally save latest code
+                    "code": code
                 }
             )
-
-            # ✅ Update total score in ContestParticipation
-            from contests.models import ContestParticipation
-
-            contest = challenge.contest  # ✅ Ensure Challenge has contest FK
 
             total_score = Submission.objects.filter(
                 user=user,
@@ -123,20 +130,25 @@ def execute_code(request, challenge_id):
         return JsonResponse({"error": str(e), "trace": traceback.format_exc()}, status=500)
 
 
-
+#  contests/views.py
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_contest_challenges(request, contest_id):
+    cache_key = f"contest_challenges_{contest_id}"
+    data = cache.get(cache_key)
+
+    if data:
+        return Response(data)
+
     try:
-        # Validate contest exists
         contest = Contest.objects.get(id=contest_id)
-              
-        # Get challenges via M2M table
         contest_challenges = ContestChallenge.objects.filter(contest=contest).select_related('challenge')
         challenges = [cc.challenge for cc in contest_challenges]
-
-        # Serialize
-        serializer = ChallengeSerializer(challenges, many=True)
-        return Response(serializer.data)
+        serializer = ChallengeSerializer(challenges, many=True, context={'request': request})
+        data = serializer.data
+        cache.set(cache_key, data, timeout=300)
+        return Response(data)
     except Contest.DoesNotExist:
         return Response({"error": "Contest not found"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)

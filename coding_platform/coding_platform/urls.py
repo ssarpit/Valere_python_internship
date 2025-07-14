@@ -24,5 +24,6 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('', landing_view, name='landing'),
     path('contests/', include('contests.urls', namespace='contests')),  
-    path('challenges/', include('challenges.urls', namespace='challenges'))
+    path('challenges/', include(('challenges.urls', 'challenges'), namespace='challenges')),
+
 ]

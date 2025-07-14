@@ -14,6 +14,8 @@ from .models import UserProfile
 from .forms import RegisterForm
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
+from .tasks import send_email_task
+
 
 # Register view, with OTP generation and email sending
 def register_view(request):
@@ -44,7 +46,7 @@ def register_view(request):
             }
             request.session['password_for_otp'] = password
 
-            send_email(email, otp, username)
+            send_email_task.delay(email, otp, username)
 
             messages.info(request, "OTP sent to your email. Please verify to complete registration.")
             return redirect('verify_otp')
@@ -53,16 +55,7 @@ def register_view(request):
     return render(request, 'users/register.html', {'form': form})
 
 
-# Send OTP email
-def send_email(email, otp, uname):
-    subject = "Email Verification - Coding Platform"
-    from_email = settings.EMAIL_HOST_USER
-    html_content = render_to_string('email/email_otp.html', {'user': uname, 'otp': otp})
-    text_content = f"Hi {uname}, your OTP is: {otp}"
 
-    msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
-    msg.attach_alternative(html_content, "text/html")
-    msg.send()
 
 
 # OTP Verification View
@@ -152,7 +145,7 @@ def resend_otp(request):
         otp = get_random_string(length=6, allowed_chars='1234567890')
         request.session['otp'] = otp
         request.session['otp_timestamp'] = datetime.now().isoformat()
-        send_email(user_data['email'], otp, user_data['username'])
+        send_email_task(user_data['email'], otp, user_data['username'])
         messages.success(request, "OTP resent successfully.")
     return redirect('verify_otp')
 

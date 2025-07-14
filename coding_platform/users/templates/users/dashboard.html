@@ -22,6 +22,13 @@
   }
 </style>
 
+
+ <div class="d-flex justify-content-end mb-3">
+    <a href="{% url 'profile' %}" class="btn btn-outline-primary me-2">👤 Profile</a>
+    <a href="{% url 'logout' %}" class="btn btn-outline-danger">🚪 Logout</a>
+  </div>
+
+  
 <div class="container mt-5">
   <div class="profile-box">
     <h2 class="heading">👋 Welcome to Weekly Coding Contest, {{ request.user.username }}!</h2>

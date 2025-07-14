@@ -16,28 +16,45 @@
 
 <div class="container mt-5">
   <h2 class="mb-3 text-primary">🏁 {{ contest.name }}</h2>
-  <p><strong>Start Date:</strong> {{ contest.start_time|date:"F j, Y" }}</p>
-  <p><strong>End Date:</strong> {{ contest.end_time|date:"F j, Y" }}</p>
+  <p><strong>Start:</strong> {{ contest.start_time|date:"F j, Y H:i" }}</p>
+  <p><strong>End:</strong> {{ contest.end_time|date:"F j, Y H:i" }}</p>
   <p>{{ contest.description }}</p>
 
-  <!-- Timer -->
+  <!-- ⏳ Timer -->
   <div class="timer-box" id="timer">⏳ Time Remaining: <span id="timeLeft"></span></div>
 
-  <!-- ✅ Dynamic Challenge List -->
+  <!-- 🧮 Live Score -->
+  <div class="mt-3">
+    <h5>Total Score: <span id="scoreDisplay">{% if already_submitted %}{{ user_contest.total_score }}{% else %}Not yet submitted{% endif %}</span></h5>
+  </div>
+
+  <!-- 🧠 Challenges -->
   <h4 class="mt-4">🧠 Challenges in This Contest</h4>
   <ul class="list-group" id="challengeList">
-    <li class="list-group-item">Loading challenges...</li>
+    {% for challenge in challenges %}
+      <li class="list-group-item d-flex justify-content-between align-items-center {% if challenge.id in solved_challenges %}list-group-item-success{% endif %}">
+        {{ challenge.title }}
+        <a href="{% url 'challenges:challenge_detail' challenge.id %}" class="btn btn-outline-success">
+          {% if challenge.id in solved_challenges %}✅ Solved{% else %}Solve{% endif %}
+        </a>
+      </li>
+    {% empty %}
+      <li class="list-group-item">No challenges added.</li>
+    {% endfor %}
   </ul>
 
-  <!-- Submit Button + Leaderboard -->
+  <!-- 🎯 Submit Contest -->
   <div class="mt-4 text-center">
-    {% if not already_submitted %}
-      <button id="submitBtn" class="btn btn-success btn-lg" onclick="submitContest()">🎯 Submit Contest</button>
-    {% endif %}
+    <button id="submitBtn"
+            class="btn btn-success btn-lg"
+            onclick="submitContest()"
+            {% if already_submitted %}disabled{% endif %}>
+      {% if already_submitted %}✅ Submitted{% else %}🎯 Submit Contest{% endif %}
+    </button>
     <a href="{% url 'challenges:leaderboard' %}" class="btn btn-outline-primary mt-3">🏁 View Leaderboard</a>
   </div>
 
-  <!-- Success Modal -->
+  <!-- ✅ Success Modal -->
   <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-success">
@@ -50,13 +67,17 @@
   </div>
 </div>
 
-<!-- ✅ JavaScript -->
 <script>
   const startedAt = new Date("{{ started_at|date:'c' }}").getTime();
   const contestId = {{ contest.id }};
-  const endTime = startedAt + (60 * 60 * 1000); // 60 min
+  const alreadySubmitted = {{ already_submitted|yesno:"true,false" }};
+  const submittedChallengeIds = {{ submitted_challenge_ids|default:"[]"|safe }};
+  const durationMs = 60 * 60 * 1000; // 60 mins
+  const endTime = startedAt + durationMs;
 
   const timerElement = document.getElementById("timeLeft");
+  const submitBtn = document.getElementById("submitBtn");
+  const scoreDisplay = document.getElementById("scoreDisplay");
   let timerInterval;
 
   function updateTimer() {
@@ -67,7 +88,7 @@
       timerElement.innerHTML = "⏱️ Time's up!";
       clearInterval(timerInterval);
       disableSubmitButton();
-      autoSubmitContest(); // ⏱️ Auto-submit
+      if (!alreadySubmitted) autoSubmitContest();
     } else {
       const min = Math.floor(left / 60000);
       const sec = Math.floor((left % 60000) / 1000);
@@ -76,10 +97,10 @@
   }
 
   function disableSubmitButton() {
-    const btn = document.getElementById("submitBtn");
-    if (btn) {
-      btn.disabled = true;
-      btn.classList.add("disabled");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = "✅ Submitted";
+      submitBtn.classList.add("disabled");
     }
   }
 
@@ -103,65 +124,49 @@
     })
     .then(res => res.json())
     .then(data => {
-      clearInterval(timerInterval);
-      disableSubmitButton();
+      if (data.message === "Contest submitted!") {
+        clearInterval(timerInterval);
+        disableSubmitButton();
 
-      const modal = new bootstrap.Modal(document.getElementById('successModal'));
-      modal.show();
-      setTimeout(() => {
-        window.location.href = "{% url 'challenges:leaderboard' %}";
-      }, 3000);
+        // ✅ Show score in real-time after submission
+        if (data.total_score !== undefined) {
+          scoreDisplay.innerText = `${data.total_score} pts`;
+        }
+
+        const modal = new bootstrap.Modal(document.getElementById('successModal'));
+        modal.show();
+
+        setTimeout(() => {
+          window.location.href = "{% url 'challenges:leaderboard' %}";
+        }, 3000);
+      } else {
+        alert(data.message || "Something went wrong.");
+        submitBtn.disabled = false;
+        submitBtn.innerText = "🎯 Submit Contest";
+      }
     })
     .catch(err => {
       alert("❌ Submission failed: " + err.message);
       console.error("Submission error:", err);
+      submitBtn.disabled = false;
+      submitBtn.innerText = "🎯 Submit Contest";
     });
   }
 
   function submitContest() {
-    autoSubmitContest(true);
+    if (!submitBtn.disabled) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Submitting...";
+      autoSubmitContest();
+    }
   }
 
-  // 🧠 Fetch Challenges for the Contest
-  fetch(`/api/contests/${contestId}/challenges/`)
-  .then(response => {
-    if (!response.ok) {
-      throw new Error("Failed to load challenges.");
-    }
-    return response.json();
-  })
-  .then(data => {
-    const list = document.getElementById("challengeList");
-    list.innerHTML = ""; // ✅ clear loading text
-
-    if (data.length === 0) {
-      list.innerHTML = "<li class='list-group-item'>No challenges available.</li>";
-      return;
-    }
-
-    data.forEach(challenge => {
-      const li = document.createElement("li");
-      li.className = "list-group-item d-flex justify-content-between align-items-center";
-
-      li.innerHTML = `
-        <span>${challenge.title}</span>
-        {% if not already_submitted %}
-          <a href="/challenges/${challenge.id}/" class="btn btn-outline-success">Solve</a>
-        {% else %}
-          <span class="text-muted">✅ Submitted</span>
-        {% endif %}
-      `;
-
-      list.appendChild(li);
-    });
-  })
-  .catch(error => {
-    console.error("Challenge fetch error:", error);
-    const list = document.getElementById("challengeList");
-    list.innerHTML = `<li class="list-group-item text-danger">❌ Failed to load challenges</li>`;
-  });
-
-  timerInterval = setInterval(updateTimer, 1000);
-  updateTimer();
+  if (!alreadySubmitted) {
+    timerInterval = setInterval(updateTimer, 1000);
+    updateTimer();
+  } else {
+    timerElement.innerHTML = "00:00";
+    disableSubmitButton();
+  }
 </script>
 {% endblock %}

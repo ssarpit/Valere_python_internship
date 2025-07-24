@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Your Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card shadow">
+    <div class="card-body">
+      <h3 class="card-title text-center text-info">👤 Profile Information</h3>
+      <hr>
+      <p><strong>Username:</strong> {{ user.username }}</p>
+      <p><strong>Email:</strong> {{ user.email }}</p>
+      <p><strong>First Name:</strong> {{ user.first_name }}</p>
+      <p><strong>Last Name:</strong> {{ user.last_name }}</p>
+
+      {% if user.userprofile %}
+        <p><strong>Date of Birth:</strong> {{ user.userprofile.dob }}</p>
+        <p><strong>Gender:</strong> {{ user.userprofile.gender }}</p>
+        <p><strong>Phone:</strong> {{ user.userprofile.phone }}</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

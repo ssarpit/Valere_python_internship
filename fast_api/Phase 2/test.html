@@ -1,0 +1,28 @@
+<!-- test.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test CORS</title>
+</head>
+<body>
+  <h1>Testing CORS from Port 3000</h1>
+  <button onclick="callApi()">Call Backend</button>
+  <p id="result"></p>
+
+  <script>
+    function callApi() {
+      fetch('http://127.0.0.1:8000/', {
+        method: 'GET',
+        credentials: 'include'
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('result').innerText = JSON.stringify(data);
+      })
+      .catch(err => {
+        document.getElementById('result').innerText = 'Error: ' + err;
+      });
+    }
+  </script>
+</body>
+</html>
